@@ -1,37 +1,38 @@
-"use client"
 import { useState, useEffect, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import "./PrintForm.css";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
-// const API_BASE = "http://192.168.0.108:5000/api";
-const API_BASE = process.env.REACT_APP_API_BASE || "https://printdemo-production.up.railway.app/api";
+const API_BASE =
+  process.env.REACT_APP_API_BASE ||
+  "https://printdemo-production.up.railway.app/api";
 
 function PrintForm() {
-
-  const [machineId, setMachineId] = useState("");
+  const [machineId, setMachineId]       = useState("");
   const [machineStatus, setMachineStatus] = useState(null);
-  const [file, setFile] = useState(null);
+  const [file, setFile]                 = useState(null);
 
-  const [color, setColor] = useState("bw");
-  const [copies, setCopies] = useState(1);
+  const [color, setColor]         = useState("bw");
+  const [copies, setCopies]       = useState(1);
   const [printSide, setPrintSide] = useState("single");
   const [paperSize, setPaperSize] = useState("A4");
 
-  const [jobId, setJobId] = useState(null);
+  const [jobId, setJobId]     = useState(null);
   const [summary, setSummary] = useState(null);
-  const [otp, setOtp] = useState(null);
+  const [otp, setOtp]         = useState(null);
   const [qrToken, setQrToken] = useState(null);
 
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  /* ===============================
-     GET MACHINE FROM URL
-  =============================== */
+  /* derive current step: 1 = Upload, 2 = Pay, 3 = Collect */
+  const step = otp ? 3 : jobId ? 2 : 1;
+
+  /* ── GET MACHINE FROM URL ── */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params  = new URLSearchParams(window.location.search);
     const machine = params.get("machine");
-
     if (machine) {
       setMachineId(machine);
       fetchStatus(machine);
@@ -41,115 +42,80 @@ function PrintForm() {
   }, []);
 
   const fetchStatus = async (id) => {
-    const res = await fetch(`${API_BASE}/machines/${id}/status`);
-    const data = await res.json();
-
-    if (res.ok) setMachineStatus(data);
+    try {
+      const res  = await fetch(`${API_BASE}/machines/${id}/status`);
+      const data = await res.json();
+      if (res.ok) setMachineStatus(data);
+    } catch {
+      setError("Network error while fetching machine status.");
+    }
   };
 
-  /* ===============================
-     AUTO STATUS CHECK (PRINT COMPLETE)
-  =============================== */
+  /* ── POLL FOR PRINT COMPLETION ── */
   useEffect(() => {
     if (!jobId || !otp) return;
-
     const interval = setInterval(async () => {
-      const res = await fetch(`${API_BASE}/job-status/${jobId}`);
+      const res  = await fetch(`${API_BASE}/job-status/${jobId}`);
       const data = await res.json();
-
       if (data.status === "PRINTED") {
         clearInterval(interval);
-
-        setSuccess("✅ Print completed successfully!");
-
-        setTimeout(() => {
-          window.location.href = `/?machine=${machineId}`;
-        }, 3000);
+        setSuccess("Print completed successfully!");
+        setTimeout(() => { window.location.href = `/?machine=${machineId}`; }, 3000);
       }
-
       if (data.status === "FAILED") {
         clearInterval(interval);
-        setError("❌ Printing failed. Please contact support.");
+        setError("Printing failed. Please contact support.");
       }
-
     }, 3000);
-
     return () => clearInterval(interval);
-
   }, [jobId, otp, machineId]);
 
-  /* ===============================
-     FILE VALIDATION
-  =============================== */
+  /* ── FILE VALIDATION ── */
   const handleFileChange = (e) => {
-    setError("");
-    setSuccess("");
-
+    setError(""); setSuccess("");
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
-
     if (selectedFile.type !== "application/pdf") {
-      setError("Only PDF files are allowed.");
-      return;
+      setError("Only PDF files are allowed."); return;
     }
-
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError("PDF size must be less than 50MB.");
-      return;
+      setError("PDF must be under 50 MB."); return;
     }
-
     setFile(selectedFile);
   };
 
   const fetchSummary = async (id) => {
-    const res = await fetch(`${API_BASE}/job-summary/${id}`);
+    const res  = await fetch(`${API_BASE}/job-summary/${id}`);
     const data = await res.json();
-
     if (res.ok) setSummary(data);
   };
 
-  /* ===============================
-     UPDATE JOB
-  =============================== */
+  /* ── UPDATE JOB ── */
   const updateJob = useCallback(async () => {
     if (!jobId) return;
-
     const res = await fetch(`${API_BASE}/job/${jobId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ color, copies, paperSize, printSide }),
     });
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-
     await fetchSummary(jobId);
-
   }, [jobId, color, copies, paperSize, printSide]);
 
   useEffect(() => {
-    if (jobId && !otp) {
-      updateJob();
-    }
+    if (jobId && !otp) updateJob();
   }, [jobId, otp, updateJob]);
 
-  /* ===============================
-     STEP 1️⃣ UPLOAD
-  =============================== */
+  /* ── STEP 1: UPLOAD ── */
   const handleUploadJob = async () => {
-    setError("");
-    setSuccess("");
-
+    setError(""); setSuccess("");
     if (!machineStatus || machineStatus.is_print_locked) {
-      setError("Machine is out of paper. Try later.");
-      return;
+      setError("Machine is out of paper. Try later."); return;
     }
-
     if (!machineId || !file) {
-      setError("Machine and PDF are required.");
-      return;
+      setError("Machine and PDF are required."); return;
     }
-
     const formData = new FormData();
     formData.append("pdf", file);
     formData.append("machineId", machineId);
@@ -157,42 +123,32 @@ function PrintForm() {
     formData.append("copies", copies);
     formData.append("paperSize", paperSize);
     formData.append("printSide", printSide);
-
+    setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/upload-job`, {
-        method: "POST",
-        body: formData,
-      });
-
+      const res  = await fetch(`${API_BASE}/upload-job`, { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
       setJobId(data.jobId);
       await fetchSummary(data.jobId);
-
-      setSuccess(`Job created. Job ID: ${data.jobId}`);
-
+      setSuccess(`Job created — ID: ${data.jobId}`);
     } catch (err) {
       setError(err.message || "Upload failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  /* ===============================
-     STEP 2️⃣ PAYMENT
-  =============================== */
+  /* ── STEP 2: PAYMENT ── */
   const startPayment = async () => {
-    setError("");
-    setSuccess("");
-
+    setError(""); setSuccess("");
+    setLoading(true);
     try {
       await updateJob();
-
-      const res = await fetch(`${API_BASE}/create-payment`, {
+      const res  = await fetch(`${API_BASE}/create-payment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
@@ -201,521 +157,261 @@ function PrintForm() {
         amount: data.amount,
         currency: "INR",
         order_id: data.orderId,
-
         handler: async (response) => {
-          const verifyRes = await fetch(`${API_BASE}/verify-payment`, {
+          const verifyRes  = await fetch(`${API_BASE}/verify-payment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(response),
           });
-
           const verifyData = await verifyRes.json();
           if (!verifyRes.ok) throw new Error(verifyData.error);
-
           setOtp(verifyData.otp);
           setQrToken(verifyData.qrToken);
-          setSuccess("Payment successful. OTP generated.");
+          setSuccess("Payment successful — OTP generated.");
         },
-
-        theme: { color: "#16a34a" },
+        theme: { color: "#a3e635" },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-
     } catch (err) {
       setError(err.message || "Payment failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  /* ===============================
-     UI
-  =============================== */
+  /* ── FORMAT FILE SIZE ── */
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  /* ── UI ── */
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>📄 Print Document</h2>
+    <div className="pf-page">
+      {/* Header */}
+      <div className="pf-header">
+        <div className="pf-header-icon">🖨️</div>
+        <div className="pf-header-text">
+          <h1>PrintKiosk</h1>
+          <p>Upload · Pay · Collect</p>
+        </div>
+      </div>
 
-        {machineStatus?.is_print_locked && (
-          <div style={{ color: "red", fontWeight: "bold" }}>
-            ⚠ Machine out of paper. Payment disabled.
-          </div>
-        )}
+      {/* Card */}
+      <div className="pf-card">
 
-        {error && <div style={styles.alertError}>{error}</div>}
-        {success && <div style={styles.alertSuccess}>{success}</div>}
+        {/* Step Bar */}
+        <div className="pf-steps">
+          {[["1","Upload"],["2","Pay"],["3","Collect"]].map(([num, label]) => (
+            <div
+              key={num}
+              className={`pf-step ${step === Number(num) ? "active" : step > Number(num) ? "done" : ""}`}
+            >
+              <div className="pf-step-num">{step > Number(num) ? "✓" : num}</div>
+              <div className="pf-step-label">{label}</div>
+            </div>
+          ))}
+        </div>
 
-        {/* FILE */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Upload PDF</label>
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            style={styles.fileInput}
-          />
+        {/* Body */}
+        <div className={`pf-body pf-step-enter`}>
 
-          {file && (
-            <div style={{ marginTop: 10 }}>
-              <strong>File:</strong> {file.name}
+          {/* Machine status */}
+          {machineStatus && !machineStatus.is_print_locked && (
+            <div className="pf-status-bar">
+              <span className="dot" />
+              Printer online · Ready
+            </div>
+          )}
+
+          {machineStatus?.is_print_locked && (
+            <div className="pf-machine-warning">
+              ⚠ Machine out of paper — payment disabled.
+            </div>
+          )}
+
+          {/* Alerts */}
+          {error   && <div className="pf-alert error">⚠ {error}</div>}
+          {success && <div className="pf-alert success">✓ {success}</div>}
+
+          {/* ── STEP 1: UPLOAD ── */}
+          {step === 1 && (
+            <>
+              <div className="pf-section-title">📄 Document</div>
+
+              {/* Drop zone */}
+              <div className={`pf-dropzone${file ? " has-file" : ""}`}>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                />
+                {file ? (
+                  <>
+                    <span className="pf-dropzone-icon">✅</span>
+                    <div className="pf-dropzone-text">{file.name}</div>
+                    <div className="pf-dropzone-hint">{formatSize(file.size)} · Click to change</div>
+                  </>
+                ) : (
+                  <>
+                    <span className="pf-dropzone-icon">📄</span>
+                    <div className="pf-dropzone-text">Select file</div>
+                    <div className="pf-dropzone-hint">PDF only · max 50 MB</div>
+                  </>
+                )}
+              </div>
+
+              <div className="pf-divider" />
+
+              {/* Print options */}
+              <div className="pf-section-title">⚙ Print options</div>
+              <div className="pf-grid">
+                <div className="pf-field">
+                  <label>Print type</label>
+                  <select value={color} onChange={(e) => setColor(e.target.value)}>
+                    <option value="bw">Black &amp; White</option>
+                    <option value="color">Color</option>
+                  </select>
+                </div>
+
+                <div className="pf-field">
+                  <label>Copies</label>
+                  <div className="pf-counter">
+                    <button
+                      className="pf-counter-btn"
+                      onClick={() => setCopies(c => Math.max(1, c - 1))}
+                      type="button"
+                    >−</button>
+                    <div className="pf-counter-value">{copies}</div>
+                    <button
+                      className="pf-counter-btn"
+                      onClick={() => setCopies(c => Math.min(50, c + 1))}
+                      type="button"
+                    >+</button>
+                  </div>
+                </div>
+
+                <div className="pf-field">
+                  <label>Print side</label>
+                  <select value={printSide} onChange={(e) => setPrintSide(e.target.value)}>
+                    <option value="single">Single Side</option>
+                    <option value="duplex">Duplex</option>
+                  </select>
+                </div>
+
+                <div className="pf-field">
+                  <label>Paper size</label>
+                  <select value={paperSize} onChange={(e) => setPaperSize(e.target.value)}>
+                    <option value="A4">A4</option>
+                    <option value="A3">A3</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── STEP 2: SUMMARY + PAY ── */}
+          {step === 2 && summary && (
+            <>
+              <div className="pf-section-title">🧾 Order summary</div>
+              <div className="pf-summary">
+                <div className="pf-summary-header">
+                  <h3>Print Job</h3>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--ink-3)" }}>
+                    {jobId}
+                  </span>
+                </div>
+                <div className="pf-summary-body">
+                  <div className="pf-summary-row">
+                    <span className="key">Pages</span>
+                    <span className="val">{summary.totalPages}</span>
+                  </div>
+                  <div className="pf-summary-row">
+                    <span className="key">Copies</span>
+                    <span className="val">{summary.copies}</span>
+                  </div>
+                  <div className="pf-summary-row">
+                    <span className="key">Type</span>
+                    <span className="val">{summary.color === "bw" ? "B&W" : "Color"}</span>
+                  </div>
+                  <div className="pf-summary-row">
+                    <span className="key">Side</span>
+                    <span className="val">{summary.printSide === "duplex" ? "Duplex" : "Single"}</span>
+                  </div>
+                  <div className="pf-summary-row">
+                    <span className="key">Rate</span>
+                    <span className="val">₹{summary.rate}/sheet</span>
+                  </div>
+                  <div className="pf-summary-total">
+                    <span className="label">Total</span>
+                    <span className="amount">₹{summary.totalAmount}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── STEP 3: OTP ── */}
+          {step === 3 && otp && (
+            <div className="pf-otp-box">
+              <div className="pf-otp-label">Enter this OTP at the printer</div>
+              <span className="pf-otp-code">{otp}</span>
+              <div className="pf-otp-expiry">Valid for 5 minutes</div>
+
+              <div className="pf-or">or scan QR</div>
+
+              <div className="pf-qr-wrap">
+                <QRCodeCanvas value={qrToken} size={180} />
+              </div>
+              <div className="pf-qr-hint">Scan at the printer to release your job</div>
+
+              <div className="pf-waiting">
+                <div style={{
+                  width: 10, height: 10, borderRadius: "50%",
+                  border: "2px solid var(--lime)", borderTopColor: "transparent",
+                  animation: "spin 0.8s linear infinite"
+                }} />
+                Waiting for printer confirmation…
+              </div>
             </div>
           )}
         </div>
 
-        {/* OPTIONS */}
-        <div style={styles.row}>
-          <div style={styles.half}>
-            <label style={styles.label}>Print Type</label>
-            <select value={color} onChange={(e) => setColor(e.target.value)} style={styles.input}>
-              <option value="bw">Black & White</option>
-              <option value="color">Color</option>
-            </select>
-          </div>
+        {/* Action bar */}
+        <div className="pf-action-bar">
+          {step === 1 && (
+            <button
+              className="pf-btn primary"
+              onClick={handleUploadJob}
+              disabled={loading || !file || machineStatus?.is_print_locked}
+            >
+              {loading
+                ? <><div className="pf-spinner" /> Uploading…</>
+                : "Upload & Continue →"}
+            </button>
+          )}
 
-          <div style={styles.half}>
-            <label style={styles.label}>Copies</label>
-            <input
-              type="number"
-              min="1"
-              max="50"
-              value={copies}
-              onChange={(e) => setCopies(Number(e.target.value))}
-              style={styles.input}
-            />
-          </div>
+          {step === 2 && (
+            <button
+              className="pf-btn pay"
+              onClick={startPayment}
+              disabled={loading || machineStatus?.is_print_locked}
+            >
+              {loading
+                ? <><div className="pf-spinner" /> Processing…</>
+                : `Pay ₹${summary?.totalAmount ?? ""} & Get OTP →`}
+            </button>
+          )}
         </div>
 
-        <div style={styles.row}>
-          <div style={styles.half}>
-            <label style={styles.label}>Print Side</label>
-            <select value={printSide} onChange={(e) => setPrintSide(e.target.value)} style={styles.input}>
-              <option value="single">Single Side</option>
-              <option value="duplex">Duplex</option>
-            </select>
-          </div>
-
-          <div style={styles.half}>
-            <label style={styles.label}>Paper Size</label>
-            <select value={paperSize} onChange={(e) => setPaperSize(e.target.value)} style={styles.input}>
-              <option value="A4">A4</option>
-              <option value="A3">A3</option>
-            </select>
-          </div>
-        </div>
-
-        {!jobId && (
-          <button style={styles.primaryButton} onClick={handleUploadJob}>
-            Upload & Create Job
-          </button>
-        )}
-
-        {summary && (
-          <div style={styles.summaryBox}>
-            <h3>🧾 Order Summary</h3>
-            <p>Total Amount: ₹{summary.totalAmount}</p>
-            <p>Copies: {summary.copies}</p>
-            <p>Color: {summary.color}</p>
-          </div>
-        )}
-
-        {jobId && !otp && (
-          <button
-            style={styles.payButton}
-            onClick={startPayment}
-            disabled={machineStatus?.is_print_locked}
-          >
-            Pay & Generate OTP
-          </button>
-        )}
-
-        {otp && (
-          <div style={styles.otpBox}>
-            <h2>🔐 OTP: {otp}</h2>
-            <QRCodeCanvas value={qrToken} size={200} />
-          </div>
-        )}
+        {/* Footer */}
+        <div className="pf-footer">PrintKiosk v1.0</div>
       </div>
     </div>
   );
 }
 
-// /* ===============================
-//    STYLES
-// =============================== */
-// const styles = {
-//   page: {
-//     minHeight: "100vh",
-//     background: "linear-gradient(135deg, #f0f4f8, #e2e8f0)",
-//     display: "flex",
-//     justifyContent: "center",
-//     alignItems: "center",
-//     padding: 20,
-//   },
-
-//   card: {
-//     width: "100%",
-//     maxWidth: 500,
-//     background: "#ffffff",
-//     padding: 30,
-//     borderRadius: 12,
-//     boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-//   },
-
-//   title: {
-//     marginBottom: 20,
-//     textAlign: "center",
-//     fontSize: 22,
-//     fontWeight: 600,
-//   },
-
-//   formGroup: {
-//     marginBottom: 15,
-//   },
-
-//   row: {
-//     display: "flex",
-//     gap: 12,
-//     marginBottom: 15,
-//   },
-
-//   half: {
-//     flex: 1,
-//   },
-
-//   label: {
-//     fontSize: 14,
-//     fontWeight: 500,
-//     marginBottom: 5,
-//     display: "block",
-//   },
-
-//   input: {
-//     width: "100%",
-//     padding: 10,
-//     borderRadius: 6,
-//     border: "1px solid #cbd5e1",
-//     fontSize: 14,
-//   },
-
-//   fileInput: {
-//     marginTop: 5,
-//   },
-
-//   primaryButton: {
-//     marginTop: 10,
-//     width: "100%",
-//     padding: 12,
-//     backgroundColor: "#2563eb",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: 8,
-//     fontWeight: 600,
-//     cursor: "pointer",
-//   },
-
-//   payButton: {
-//     marginTop: 15,
-//     width: "100%",
-//     padding: 12,
-//     backgroundColor: "#16a34a",
-//     color: "#fff",
-//     border: "none",
-//     borderRadius: 8,
-//     fontWeight: 600,
-//     cursor: "pointer",
-//   },
-
-//   summaryBox: {
-//     marginTop: 20,
-//     padding: 15,
-//     background: "#f8fafc",
-//     borderRadius: 8,
-//     border: "1px solid #e2e8f0",
-//   },
-
-//   summaryTitle: {
-//     marginBottom: 10,
-//   },
-
-//   total: {
-//     marginTop: 10,
-//     color: "#16a34a",
-//   },
-
-//   otpBox: {
-//     marginTop: 20,
-//     textAlign: "center",
-//     padding: 20,
-//     background: "#ecfdf5",
-//     borderRadius: 10,
-//   },
-
-//   otpText: {
-//     color: "#065f46",
-//   },
-
-//   alertError: {
-//     background: "#fee2e2",
-//     padding: 10,
-//     borderRadius: 6,
-//     color: "#b91c1c",
-//     marginBottom: 10,
-//   },
-
-//   alertSuccess: {
-//     background: "#dcfce7",
-//     padding: 10,
-//     borderRadius: 6,
-//     color: "#166534",
-//     marginBottom: 10,
-//   },
-// };
-
-
-// const COLORS = {
-//   bg: "#050816",
-//   bgGradientStart: "#050816",
-//   bgGradientEnd: "#071122",
-
-//   primary: "#007BFF",
-//   secondary: "#00C2FF",
-
-//   white: "#FFFFFF",
-//   lightBlue: "#B8E6FF",
-//   muted: "#6E7C91",
-
-//   success: "#00C2FF",
-//   warning: "#FFC857",
-//   error: "#FF6B6B",
-
-//   surface: "rgba(255,255,255,0.05)",
-//   surface2: "rgba(0,194,255,0.08)",
-
-//   border: "rgba(255,255,255,0.10)",
-//   border2: "rgba(0,194,255,0.35)",
-// };
-// const styles = {
-//  page: {
-//   minHeight: "100vh",
-//   background: "linear-gradient(180deg, #050816 0%, #071122 100%)",
-//   display: "flex",
-//   justifyContent: "center",
-//   alignItems: "center",
-//   padding: 20,
-// },
-
-//   card: {
-//   width: "100%",
-//   maxWidth: 500,
-//   background: "rgba(255,255,255,0.05)",
-//   border: "1px solid rgba(0,194,255,0.20)",
-//   backdropFilter: "blur(16px)",
-//   padding: 30,
-//   borderRadius: 16,
-//   boxShadow:
-//     "0 0 20px rgba(0,194,255,0.15), 0 0 40px rgba(0,123,255,0.08)",
-// },
-
-//   title: {
-//   marginBottom: 20,
-//   textAlign: "center",
-//   fontSize: 22,
-//   fontWeight: 700,
-//   color: "#FFFFFF",
-// },
-
-//   formGroup: {
-//     marginBottom: 15,
-//   },
-
-//   row: {
-//     display: "flex",
-//     gap: 12,
-//     marginBottom: 15,
-//   },
-
-//   half: {
-//     flex: 1,
-//   },
-
-//   label: {
-//   fontSize: 14,
-//   fontWeight: 500,
-//   marginBottom: 5,
-//   display: "block",
-//   color: "#B8E6FF",
-// },
-
-//  input: {
-//   width: "100%",
-//   padding: 12,
-//   borderRadius: 10,
-//   border: "1px solid rgba(0,194,255,0.25)",
-//   background: "rgba(255,255,255,0.05)",
-//   color: "#FFFFFF",
-//   fontSize: 14,
-//   outline: "none",
-// },
-
-//  fileInput: {
-//   width: "100%",
-//   color: "#FFFFFF",
-// },
-
-//   primaryButton: {
-//   marginTop: 10,
-//   width: "100%",
-//   padding: 14,
-//   background:
-//     "linear-gradient(90deg,#007BFF,#00C2FF)",
-//   color: "#FFFFFF",
-//   border: "none",
-//   borderRadius: 12,
-//   fontWeight: 700,
-//   cursor: "pointer",
-//   boxShadow: "0 0 20px rgba(0,194,255,0.25)",
-// },
-
-//   payButton: {
-//   marginTop: 15,
-//   width: "100%",
-//   padding: 14,
-//   background:
-//     "linear-gradient(90deg,#007BFF,#00C2FF)",
-//   color: "#FFFFFF",
-//   border: "none",
-//   borderRadius: 12,
-//   fontWeight: 700,
-//   cursor: "pointer",
-//   boxShadow: "0 0 20px rgba(0,194,255,0.25)",
-// },
-
-// summaryBox: {
-//   marginTop: 20,
-//   padding: 15,
-//   background: "rgba(255,255,255,0.05)",
-//   border: "1px solid rgba(0,194,255,0.20)",
-//   borderRadius: 12,
-//   color: "#FFFFFF",
-// },
-
-//   summaryTitle: {
-//     marginBottom: 10,
-//   },
-
-//   total: {
-//     marginTop: 10,
-//     color: "#16a34a",
-//   },
-//   otpBox: {
-//   marginTop: 20,
-//   textAlign: "center",
-//   padding: 20,
-//   background: "rgba(0,194,255,0.08)",
-//   border: "1px solid rgba(0,194,255,0.25)",
-//   borderRadius: 12,
-//   color: "#FFFFFF",
-// },
-
-//   otpText: {
-//     color: "#065f46",
-//   },
-
-//  alertError: {
-//   background: "rgba(255,107,107,0.12)",
-//   border: "1px solid rgba(255,107,107,0.3)",
-//   padding: 12,
-//   borderRadius: 10,
-//   color: "#FF6B6B",
-//   marginBottom: 10,
-// },
-
-//  alertSuccess: {
-//   background: "rgba(0,194,255,0.10)",
-//   border: "1px solid rgba(0,194,255,0.3)",
-//   padding: 12,
-//   borderRadius: 10,
-//   color: "#00C2FF",
-//   marginBottom: 10,
-// },
-// otpTitle: {
-//   color: "#FFFFFF",
-//   marginBottom: 15,
-//   textShadow: "0 0 10px rgba(0,194,255,.4)",
-// },
-
-// fileName: {
-//   marginTop: 10,
-//   color: "#FFFFFF",
-// },
-
-// fileLabel: {
-//   color: "#00C2FF",
-//   fontWeight: "bold",
-// },
-
-// summaryHeading: {
-//   color: "#00C2FF",
-//   marginBottom: 10,
-// },
-
-// summaryText: {
-//   color: "#B8E6FF",
-//   marginBottom: 6,
-// },
-
-// summaryAmount: {
-//   color: "#FFFFFF",
-//   fontWeight: "bold",
-//   marginBottom: 6,
-// },
-
-// machineWarning: {
-//   color: "#FF6B6B",
-//   fontWeight: "bold",
-//   marginBottom: 15,
-//   textAlign: "center",
-// },
-
-// fileUploadWrapper: {
-//   background: "rgba(255,255,255,0.05)",
-//   border: "1px solid rgba(0,194,255,0.25)",
-//   borderRadius: 10,
-//   padding: 12,
-// },
-
-// fileInput: {
-//   width: "100%",
-//   color: "#FFFFFF",
-// },
-
-// select: {
-//   width: "100%",
-//   padding: 12,
-//   borderRadius: 10,
-//   border: "1px solid rgba(0,194,255,0.25)",
-//   background: "rgba(255,255,255,0.05)",
-//   color: "#FFFFFF",
-//   fontSize: 14,
-//   outline: "none",
-// },
-
-// pageText: {
-//   color: "#FFFFFF",
-// },
-
-// qrContainer: {
-//   marginTop: 15,
-//   display: "flex",
-//   justifyContent: "center",
-// },
-
-// cardHeading: {
-//   color: "#FFFFFF",
-// },
-
-// cardSubText: {
-//   color: "#B8E6FF",
-// },
-// };
 export default PrintForm;
