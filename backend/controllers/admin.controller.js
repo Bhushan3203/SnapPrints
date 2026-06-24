@@ -94,8 +94,11 @@ exports.getStats = async (req, res) => {
 // };
 exports.createMachine = async (req, res) => {
   try {
+    console.log("CREATE MACHINE BODY:", req.body);
+
     const {
       name,
+      location,
       locationName,
       address,
       city,
@@ -105,26 +108,36 @@ exports.createMachine = async (req, res) => {
       longitude
     } = req.body;
 
-    const [rows] = await db.query(
-      `SELECT machine_id
-       FROM machines
-       ORDER BY id DESC
-       LIMIT 1`
-    );
+    // Use old location field if locationName not sent
+    const finalLocationName =
+      locationName ||
+      location ||
+      `${name || "Machine"} Location`;
 
-    let machineId;
+    const [rows] = await db.query(`
+      SELECT machine_id
+      FROM machines
+      ORDER BY id DESC
+      LIMIT 1
+    `);
 
-    if (rows.length === 0) {
-      machineId = "MH1000";
-    } else {
-      const lastId = rows[0].machine_id;
-      const lastNumber = parseInt(lastId.replace("MH", ""));
-      machineId = "MH" + String(lastNumber + 1).padStart(4, "0");
+    let machineId = "MH1000";
+
+    if (rows.length > 0) {
+      const lastNumber = parseInt(
+        rows[0].machine_id.replace("MH", ""),
+        10
+      );
+
+      machineId =
+        "MH" +
+        String(lastNumber + 1).padStart(4, "0");
     }
 
-    // Create Location
+    // Create location record
     const [locationResult] = await db.query(
-      `INSERT INTO locations
+      `
+      INSERT INTO locations
       (
         name,
         address,
@@ -134,9 +147,10 @@ exports.createMachine = async (req, res) => {
         latitude,
         longitude
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      `,
       [
-        locationName,
+        finalLocationName,
         address || null,
         city || null,
         state || null,
@@ -149,10 +163,12 @@ exports.createMachine = async (req, res) => {
     const locationId = locationResult.insertId;
 
     const apiKey = crypto.randomBytes(32).toString("hex");
+
     const hash = await bcrypt.hash(apiKey, 10);
 
     await db.query(
-      `INSERT INTO machines
+      `
+      INSERT INTO machines
       (
         machine_id,
         name,
@@ -164,10 +180,11 @@ exports.createMachine = async (req, res) => {
       VALUES
       (
         ?, ?, ?, 'PENDING', FALSE, ?
-      )`,
+      )
+      `,
       [
         machineId,
-        name,
+        name || machineId,
         locationId,
         hash
       ]
@@ -185,7 +202,9 @@ exports.createMachine = async (req, res) => {
 
   } catch (err) {
     console.error("CREATE MACHINE ERROR:", err);
+
     res.status(500).json({
+      success: false,
       error: err.message
     });
   }
@@ -304,8 +323,8 @@ ORDER BY m.created_at DESC
 
     const result = machines.map((m) => {
       let isOnline = false;
-      if (m.last_seen) {
-        const diff = (now - new Date(m.last_seen).getTime()) / 1000;
+      if (m.last_seen_at) {
+        const diff = (now - new Date(m.last_seen_at).getTime()) / 1000;
         isOnline = diff < 120;
       }
       return { ...m, is_online: isOnline };
