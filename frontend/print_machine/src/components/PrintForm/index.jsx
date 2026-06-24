@@ -54,7 +54,7 @@ export default function PrintForm() {
         <div className="pf-header">
           <div className="pf-header-icon">🖨</div>
           <div className="pf-header-text">
-            <h1>PrintKiosk</h1>
+            <h1>SnapPrints</h1>
             <p>Upload · Pay · Collect</p>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function PrintForm() {
               The kiosk QR code includes this automatically in production.
             </p>
           </div>
-          <div className="pf-footer">PrintKiosk v1.0</div>
+          <div className="pf-footer">SnapPrints v1.0</div>
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ export default function PrintForm() {
       <div className="pf-header">
         <div className="pf-header-icon">🖨</div>
         <div className="pf-header-text">
-          <h1>PrintKiosk</h1>
+          <h1>SnapPrints</h1>
           <p>Upload · Pay · Collect</p>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function PrintForm() {
           </div>
         ) : null}
 
-        <div className="pf-footer">PrintKiosk v1.0</div>
+        <div className="pf-footer">SnapPrints v1.0</div>
 
       </div>
     </div>
