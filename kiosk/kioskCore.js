@@ -18,7 +18,7 @@ const PROJECT_ROOT = IS_PI
   ? "/home/pi/kiosk"
   : path.resolve(__dirname);
 
-const FALLBACK_API_BASE  = "https://printdemo-production.up.railway.app/api";
+const FALLBACK_API_BASE  = "https://snapprints-production.up.railway.app/api";
 const CONFIG_FILE        = path.join(PROJECT_ROOT, "config.json");
 const DOWNLOAD_DIR       = path.join(PROJECT_ROOT, "kiosk", "files");
 const CACHE_FILE         = path.join(PROJECT_ROOT, "kiosk", "jobs.json");
@@ -245,7 +245,10 @@ async function registerMachine(retries = 5) {
 
     } catch (err) {
       const isNetwork = err.code === "EAI_AGAIN" || err.code === "ENOTFOUND" || err.code === "ECONNREFUSED";
-      console.error(`❌ Registration attempt ${attempt}/${retries} failed: ${err.message}`);
+      console.error(
+  `❌ Registration attempt ${attempt}/${retries} failed:`,
+  err.response?.data || err.message
+);
 
       if (attempt < retries) {
         const wait = isNetwork ? 5000 : 3000;

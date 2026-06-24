@@ -50,49 +50,146 @@ exports.getStats = async (req, res) => {
 /* ===========================
    CREATE MACHINE
 =========================== */
+// exports.createMachine = async (req, res) => {
+//   try {
+//     const { name, location } = req.body;
+
+//     const [rows] = await db.query(
+//       "SELECT machine_id FROM machines ORDER BY machine_id DESC Limit 1"
+//     );
+
+//     let machineId;
+//     if (rows.length === 0) {
+//       machineId = "MH1000";
+//     } else {
+//       const lastId     = rows[0].machine_id;
+//       const lastNumber = parseInt(lastId.slice(2), 10);
+//       machineId        = "MH" + (lastNumber + 1).toString().padStart(4, "0");
+//     }
+
+//     const apiKey = crypto.randomBytes(32).toString("hex");
+//     const hash   = await bcrypt.hash(apiKey, 10);
+
+//     await db.query(
+//       `INSERT INTO machines
+//        (machine_id, name, location, status, assigned, api_key_hash)
+//        VALUES (?, ?, ?, 'PENDING', FALSE, ?)`,
+//       [machineId, name, location, hash]
+//     );
+
+//     res.json({
+//       success: true,
+//       message: "Machine created. Waiting for device registration.",
+//       credentials: {
+//         MACHINE_ID: machineId,
+//         API_KEY:    apiKey,
+//         // ✅ Fixed: was hardcoded to localhost — now uses Railway public URL
+//         API_BASE:   SERVER_API_BASE,
+//       },
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Failed to create machine" });
+//   }
+// };
 exports.createMachine = async (req, res) => {
   try {
-    const { name, location } = req.body;
+    const {
+      name,
+      locationName,
+      address,
+      city,
+      state,
+      pincode,
+      latitude,
+      longitude
+    } = req.body;
 
     const [rows] = await db.query(
-      "SELECT machine_id FROM machines ORDER BY machine_id DESC Limit 1"
+      `SELECT machine_id
+       FROM machines
+       ORDER BY id DESC
+       LIMIT 1`
     );
 
     let machineId;
+
     if (rows.length === 0) {
       machineId = "MH1000";
     } else {
-      const lastId     = rows[0].machine_id;
-      const lastNumber = parseInt(lastId.slice(2), 10);
-      machineId        = "MH" + (lastNumber + 1).toString().padStart(4, "0");
+      const lastId = rows[0].machine_id;
+      const lastNumber = parseInt(lastId.replace("MH", ""));
+      machineId = "MH" + String(lastNumber + 1).padStart(4, "0");
     }
 
+    // Create Location
+    const [locationResult] = await db.query(
+      `INSERT INTO locations
+      (
+        name,
+        address,
+        city,
+        state,
+        pincode,
+        latitude,
+        longitude
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        locationName,
+        address || null,
+        city || null,
+        state || null,
+        pincode || null,
+        latitude || null,
+        longitude || null
+      ]
+    );
+
+    const locationId = locationResult.insertId;
+
     const apiKey = crypto.randomBytes(32).toString("hex");
-    const hash   = await bcrypt.hash(apiKey, 10);
+    const hash = await bcrypt.hash(apiKey, 10);
 
     await db.query(
       `INSERT INTO machines
-       (machine_id, name, location, status, assigned, api_key_hash)
-       VALUES (?, ?, ?, 'PENDING', FALSE, ?)`,
-      [machineId, name, location, hash]
+      (
+        machine_id,
+        name,
+        location_id,
+        status,
+        assigned,
+        api_key_hash
+      )
+      VALUES
+      (
+        ?, ?, ?, 'PENDING', FALSE, ?
+      )`,
+      [
+        machineId,
+        name,
+        locationId,
+        hash
+      ]
     );
 
     res.json({
       success: true,
-      message: "Machine created. Waiting for device registration.",
+      message: "Machine created successfully",
       credentials: {
         MACHINE_ID: machineId,
-        API_KEY:    apiKey,
-        // ✅ Fixed: was hardcoded to localhost — now uses Railway public URL
-        API_BASE:   SERVER_API_BASE,
-      },
+        API_KEY: apiKey,
+        API_BASE: SERVER_API_BASE
+      }
     });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create machine" });
+    console.error("CREATE MACHINE ERROR:", err);
+    res.status(500).json({
+      error: err.message
+    });
   }
 };
-
 /* ===========================
    MACHINES LIST
 =========================== */
@@ -173,21 +270,35 @@ exports.getRevenue = async (req, res) => {
 exports.getMachineInfo = async (req, res) => {
   try {
     const [machines] = await db.query(`
-      SELECT
-        m.machine_id,
-        m.name,
-        m.status,
-        m.is_print_locked,
-        m.last_seen_at,
-        COUNT(p.id) as total_jobs,
-        COALESCE(SUM(p.amount), 0) as revenue
-      FROM machines m
-      LEFT JOIN print_jobs p
-        ON p.machine_id = m.machine_id
-        AND p.status='PRINTED'
-      GROUP BY m.machine_id
-      ORDER BY m.created_at DESC
-    `);
+SELECT
+    m.machine_id,
+    m.name,
+    m.status,
+    m.is_print_locked,
+    m.last_seen_at,
+
+    l.name AS location_name,
+    l.address,
+    l.city,
+    l.state,
+    l.pincode,
+
+    COUNT(p.id) AS total_jobs,
+    COALESCE(SUM(p.amount),0) AS revenue
+
+FROM machines m
+
+LEFT JOIN locations l
+ON m.location_id = l.id
+
+LEFT JOIN print_jobs p
+ON p.machine_id = m.machine_id
+AND p.status='PRINTED'
+
+GROUP BY m.id
+
+ORDER BY m.created_at DESC
+`);
 
     const now = Date.now();
 
