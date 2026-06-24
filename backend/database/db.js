@@ -1,5 +1,10 @@
 const mysql = require("mysql2/promise");
 
+console.log("MYSQLHOST:", process.env.MYSQLHOST);
+console.log("MYSQLDATABASE:", process.env.MYSQLDATABASE);
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_NAME:", process.env.DB_NAME);
+
 const db = mysql.createPool({
   host: process.env.DB_HOST || process.env.MYSQLHOST,
   user: process.env.DB_USER || process.env.MYSQLUSER,
@@ -20,6 +25,15 @@ const db = mysql.createPool({
     conn.release();
   } catch (err) {
     console.error("❌ DB Connection Failed:", err.message);
+  }
+})();
+
+(async () => {
+  try {
+    const [rows] = await db.query("SELECT DATABASE() AS current_db");
+    console.log("CURRENT DATABASE:", rows[0].current_db);
+  } catch (e) {
+    console.error("DATABASE TEST ERROR:", e);
   }
 })();
 

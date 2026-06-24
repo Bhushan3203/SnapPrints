@@ -634,6 +634,8 @@ cron.schedule("*/5 * * * *", async () => {
   //   await db.query(`DELETE FROM print_jobs WHERE status='PRINTED' AND created_at < NOW() - INTERVAL 1 DAY`);
   // } catch (err) { console.error("CLEANUP ERROR:", err.message); }
   try {
+      const [rows] = await db.query("SELECT DATABASE() AS db");
+    console.log("CRON DATABASE:", rows[0].db);
     console.log("STEP 1");
     await db.query(`DELETE FROM print_jobs WHERE status='CREATED' AND created_at < NOW() - INTERVAL 30 MINUTE`);
 
@@ -647,6 +649,7 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("CLEANUP ERROR FULL:", err);
   }
+  
 });
 
 /* ═══════════════════════════════════════════════════════════
