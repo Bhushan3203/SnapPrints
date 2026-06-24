@@ -472,250 +472,250 @@ function PrintForm() {
 // };
 
 
-const COLORS = {
-  bg: "#050816",
-  bgGradientStart: "#050816",
-  bgGradientEnd: "#071122",
+// const COLORS = {
+//   bg: "#050816",
+//   bgGradientStart: "#050816",
+//   bgGradientEnd: "#071122",
 
-  primary: "#007BFF",
-  secondary: "#00C2FF",
+//   primary: "#007BFF",
+//   secondary: "#00C2FF",
 
-  white: "#FFFFFF",
-  lightBlue: "#B8E6FF",
-  muted: "#6E7C91",
+//   white: "#FFFFFF",
+//   lightBlue: "#B8E6FF",
+//   muted: "#6E7C91",
 
-  success: "#00C2FF",
-  warning: "#FFC857",
-  error: "#FF6B6B",
+//   success: "#00C2FF",
+//   warning: "#FFC857",
+//   error: "#FF6B6B",
 
-  surface: "rgba(255,255,255,0.05)",
-  surface2: "rgba(0,194,255,0.08)",
+//   surface: "rgba(255,255,255,0.05)",
+//   surface2: "rgba(0,194,255,0.08)",
 
-  border: "rgba(255,255,255,0.10)",
-  border2: "rgba(0,194,255,0.35)",
-};
-const styles = {
- page: {
-  minHeight: "100vh",
-  background: "linear-gradient(180deg, #050816 0%, #071122 100%)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  padding: 20,
-},
+//   border: "rgba(255,255,255,0.10)",
+//   border2: "rgba(0,194,255,0.35)",
+// };
+// const styles = {
+//  page: {
+//   minHeight: "100vh",
+//   background: "linear-gradient(180deg, #050816 0%, #071122 100%)",
+//   display: "flex",
+//   justifyContent: "center",
+//   alignItems: "center",
+//   padding: 20,
+// },
 
-  card: {
-  width: "100%",
-  maxWidth: 500,
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(0,194,255,0.20)",
-  backdropFilter: "blur(16px)",
-  padding: 30,
-  borderRadius: 16,
-  boxShadow:
-    "0 0 20px rgba(0,194,255,0.15), 0 0 40px rgba(0,123,255,0.08)",
-},
+//   card: {
+//   width: "100%",
+//   maxWidth: 500,
+//   background: "rgba(255,255,255,0.05)",
+//   border: "1px solid rgba(0,194,255,0.20)",
+//   backdropFilter: "blur(16px)",
+//   padding: 30,
+//   borderRadius: 16,
+//   boxShadow:
+//     "0 0 20px rgba(0,194,255,0.15), 0 0 40px rgba(0,123,255,0.08)",
+// },
 
-  title: {
-  marginBottom: 20,
-  textAlign: "center",
-  fontSize: 22,
-  fontWeight: 700,
-  color: "#FFFFFF",
-},
+//   title: {
+//   marginBottom: 20,
+//   textAlign: "center",
+//   fontSize: 22,
+//   fontWeight: 700,
+//   color: "#FFFFFF",
+// },
 
-  formGroup: {
-    marginBottom: 15,
-  },
+//   formGroup: {
+//     marginBottom: 15,
+//   },
 
-  row: {
-    display: "flex",
-    gap: 12,
-    marginBottom: 15,
-  },
+//   row: {
+//     display: "flex",
+//     gap: 12,
+//     marginBottom: 15,
+//   },
 
-  half: {
-    flex: 1,
-  },
+//   half: {
+//     flex: 1,
+//   },
 
-  label: {
-  fontSize: 14,
-  fontWeight: 500,
-  marginBottom: 5,
-  display: "block",
-  color: "#B8E6FF",
-},
+//   label: {
+//   fontSize: 14,
+//   fontWeight: 500,
+//   marginBottom: 5,
+//   display: "block",
+//   color: "#B8E6FF",
+// },
 
- input: {
-  width: "100%",
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid rgba(0,194,255,0.25)",
-  background: "rgba(255,255,255,0.05)",
-  color: "#FFFFFF",
-  fontSize: 14,
-  outline: "none",
-},
+//  input: {
+//   width: "100%",
+//   padding: 12,
+//   borderRadius: 10,
+//   border: "1px solid rgba(0,194,255,0.25)",
+//   background: "rgba(255,255,255,0.05)",
+//   color: "#FFFFFF",
+//   fontSize: 14,
+//   outline: "none",
+// },
 
- fileInput: {
-  width: "100%",
-  color: "#FFFFFF",
-},
+//  fileInput: {
+//   width: "100%",
+//   color: "#FFFFFF",
+// },
 
-  primaryButton: {
-  marginTop: 10,
-  width: "100%",
-  padding: 14,
-  background:
-    "linear-gradient(90deg,#007BFF,#00C2FF)",
-  color: "#FFFFFF",
-  border: "none",
-  borderRadius: 12,
-  fontWeight: 700,
-  cursor: "pointer",
-  boxShadow: "0 0 20px rgba(0,194,255,0.25)",
-},
+//   primaryButton: {
+//   marginTop: 10,
+//   width: "100%",
+//   padding: 14,
+//   background:
+//     "linear-gradient(90deg,#007BFF,#00C2FF)",
+//   color: "#FFFFFF",
+//   border: "none",
+//   borderRadius: 12,
+//   fontWeight: 700,
+//   cursor: "pointer",
+//   boxShadow: "0 0 20px rgba(0,194,255,0.25)",
+// },
 
-  payButton: {
-  marginTop: 15,
-  width: "100%",
-  padding: 14,
-  background:
-    "linear-gradient(90deg,#007BFF,#00C2FF)",
-  color: "#FFFFFF",
-  border: "none",
-  borderRadius: 12,
-  fontWeight: 700,
-  cursor: "pointer",
-  boxShadow: "0 0 20px rgba(0,194,255,0.25)",
-},
+//   payButton: {
+//   marginTop: 15,
+//   width: "100%",
+//   padding: 14,
+//   background:
+//     "linear-gradient(90deg,#007BFF,#00C2FF)",
+//   color: "#FFFFFF",
+//   border: "none",
+//   borderRadius: 12,
+//   fontWeight: 700,
+//   cursor: "pointer",
+//   boxShadow: "0 0 20px rgba(0,194,255,0.25)",
+// },
 
-summaryBox: {
-  marginTop: 20,
-  padding: 15,
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(0,194,255,0.20)",
-  borderRadius: 12,
-  color: "#FFFFFF",
-},
+// summaryBox: {
+//   marginTop: 20,
+//   padding: 15,
+//   background: "rgba(255,255,255,0.05)",
+//   border: "1px solid rgba(0,194,255,0.20)",
+//   borderRadius: 12,
+//   color: "#FFFFFF",
+// },
 
-  summaryTitle: {
-    marginBottom: 10,
-  },
+//   summaryTitle: {
+//     marginBottom: 10,
+//   },
 
-  total: {
-    marginTop: 10,
-    color: "#16a34a",
-  },
-  otpBox: {
-  marginTop: 20,
-  textAlign: "center",
-  padding: 20,
-  background: "rgba(0,194,255,0.08)",
-  border: "1px solid rgba(0,194,255,0.25)",
-  borderRadius: 12,
-  color: "#FFFFFF",
-},
+//   total: {
+//     marginTop: 10,
+//     color: "#16a34a",
+//   },
+//   otpBox: {
+//   marginTop: 20,
+//   textAlign: "center",
+//   padding: 20,
+//   background: "rgba(0,194,255,0.08)",
+//   border: "1px solid rgba(0,194,255,0.25)",
+//   borderRadius: 12,
+//   color: "#FFFFFF",
+// },
 
-  otpText: {
-    color: "#065f46",
-  },
+//   otpText: {
+//     color: "#065f46",
+//   },
 
- alertError: {
-  background: "rgba(255,107,107,0.12)",
-  border: "1px solid rgba(255,107,107,0.3)",
-  padding: 12,
-  borderRadius: 10,
-  color: "#FF6B6B",
-  marginBottom: 10,
-},
+//  alertError: {
+//   background: "rgba(255,107,107,0.12)",
+//   border: "1px solid rgba(255,107,107,0.3)",
+//   padding: 12,
+//   borderRadius: 10,
+//   color: "#FF6B6B",
+//   marginBottom: 10,
+// },
 
- alertSuccess: {
-  background: "rgba(0,194,255,0.10)",
-  border: "1px solid rgba(0,194,255,0.3)",
-  padding: 12,
-  borderRadius: 10,
-  color: "#00C2FF",
-  marginBottom: 10,
-},
-otpTitle: {
-  color: "#FFFFFF",
-  marginBottom: 15,
-  textShadow: "0 0 10px rgba(0,194,255,.4)",
-},
+//  alertSuccess: {
+//   background: "rgba(0,194,255,0.10)",
+//   border: "1px solid rgba(0,194,255,0.3)",
+//   padding: 12,
+//   borderRadius: 10,
+//   color: "#00C2FF",
+//   marginBottom: 10,
+// },
+// otpTitle: {
+//   color: "#FFFFFF",
+//   marginBottom: 15,
+//   textShadow: "0 0 10px rgba(0,194,255,.4)",
+// },
 
-fileName: {
-  marginTop: 10,
-  color: "#FFFFFF",
-},
+// fileName: {
+//   marginTop: 10,
+//   color: "#FFFFFF",
+// },
 
-fileLabel: {
-  color: "#00C2FF",
-  fontWeight: "bold",
-},
+// fileLabel: {
+//   color: "#00C2FF",
+//   fontWeight: "bold",
+// },
 
-summaryHeading: {
-  color: "#00C2FF",
-  marginBottom: 10,
-},
+// summaryHeading: {
+//   color: "#00C2FF",
+//   marginBottom: 10,
+// },
 
-summaryText: {
-  color: "#B8E6FF",
-  marginBottom: 6,
-},
+// summaryText: {
+//   color: "#B8E6FF",
+//   marginBottom: 6,
+// },
 
-summaryAmount: {
-  color: "#FFFFFF",
-  fontWeight: "bold",
-  marginBottom: 6,
-},
+// summaryAmount: {
+//   color: "#FFFFFF",
+//   fontWeight: "bold",
+//   marginBottom: 6,
+// },
 
-machineWarning: {
-  color: "#FF6B6B",
-  fontWeight: "bold",
-  marginBottom: 15,
-  textAlign: "center",
-},
+// machineWarning: {
+//   color: "#FF6B6B",
+//   fontWeight: "bold",
+//   marginBottom: 15,
+//   textAlign: "center",
+// },
 
-fileUploadWrapper: {
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(0,194,255,0.25)",
-  borderRadius: 10,
-  padding: 12,
-},
+// fileUploadWrapper: {
+//   background: "rgba(255,255,255,0.05)",
+//   border: "1px solid rgba(0,194,255,0.25)",
+//   borderRadius: 10,
+//   padding: 12,
+// },
 
-fileInput: {
-  width: "100%",
-  color: "#FFFFFF",
-},
+// fileInput: {
+//   width: "100%",
+//   color: "#FFFFFF",
+// },
 
-select: {
-  width: "100%",
-  padding: 12,
-  borderRadius: 10,
-  border: "1px solid rgba(0,194,255,0.25)",
-  background: "rgba(255,255,255,0.05)",
-  color: "#FFFFFF",
-  fontSize: 14,
-  outline: "none",
-},
+// select: {
+//   width: "100%",
+//   padding: 12,
+//   borderRadius: 10,
+//   border: "1px solid rgba(0,194,255,0.25)",
+//   background: "rgba(255,255,255,0.05)",
+//   color: "#FFFFFF",
+//   fontSize: 14,
+//   outline: "none",
+// },
 
-pageText: {
-  color: "#FFFFFF",
-},
+// pageText: {
+//   color: "#FFFFFF",
+// },
 
-qrContainer: {
-  marginTop: 15,
-  display: "flex",
-  justifyContent: "center",
-},
+// qrContainer: {
+//   marginTop: 15,
+//   display: "flex",
+//   justifyContent: "center",
+// },
 
-cardHeading: {
-  color: "#FFFFFF",
-},
+// cardHeading: {
+//   color: "#FFFFFF",
+// },
 
-cardSubText: {
-  color: "#B8E6FF",
-},
-};
+// cardSubText: {
+//   color: "#B8E6FF",
+// },
+// };
 export default PrintForm;
