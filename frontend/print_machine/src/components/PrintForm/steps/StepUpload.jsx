@@ -32,7 +32,7 @@ export default function StepUpload({
         />
         {!file ? (
           <>
-            <div className="pf-dropzone-icon"><MdCloudUpload size={60} color="#5540f6" /></div>
+            <div className="pf-dropzone-icon"><MdCloudUpload size={60} color="#2a7cc0" /></div>
             <div className="pf-dropzone-text">Drop your file here</div>
             {/* <div className="pf-dropzone-hint">PDF only · Max 50 MB</div> */}
           </>

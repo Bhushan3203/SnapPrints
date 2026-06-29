@@ -1,51 +1,13 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap'); */
 
-/* ─────────────────────────────────────────
-   LIGHT BLUE DESIGN SYSTEM
-   Clean white surfaces · Blue accents
-   ──────────────────────────────────────── */
-/* :root {
-  --bg:          #EEF4FF;
-  --surface:     #FFFFFF;
-  --surface-2:   #F4F8FF;
-  --surface-3:   #EBF3FF;
-  --border:      #E4ECFF;
-  --border-mid:  #C5D5F5;
-  --border-hi:   #90B8F8;
 
-  --primary:     #1565C0;
-  --secondary:   #2196F3;
-  --accent-glow: rgba(21,101,192,0.12);
-  --accent-glow-sm: rgba(21,101,192,0.06);
-
-  --ink:         #0D1B3E;
-  --ink-2:       #2C4A7C;
-  --ink-3:       #6B7A9A;
-  --ink-4:       #8FA5CC;
-
-  --green:       #1565C0;
-  --green-light: #EBF3FF;
-  --green-border:#90B8F8;
-
-  --red:         #D32F2F;
-  --red-light:   #FFEBEE;
-  --red-border:  #FFCDD2;
-
-  --amber:       #E65100;
-  --amber-light: #FFF3E0;
-  --amber-border:#FFCC80;
-
-  --radius:    8px;
-  --radius-lg: 14px;
-  --shadow:    0 2px 16px rgba(21,101,192,0.10), 0 0 0 1px rgba(197,213,245,0.8);
-} */
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ─────────────────────────────────────────
    NAVY + CYAN DESIGN SYSTEM
    Deep navy surfaces · Cyan/blue accents
    ──────────────────────────────────────── */
-:root {
+/* :root {
   --bg:          #050816;
   --surface:     rgba(255,255,255,0.05);
   --surface-2:   rgba(0,194,255,0.08);
@@ -79,6 +41,46 @@
   --radius:    8px;
   --radius-lg: 14px;
   --shadow:    0 0 20px rgba(0,194,255,0.15), 0 0 40px rgba(0,123,255,0.08);
+} */
+
+/* ─────────────────────────────────────────
+   LIGHT BLUE DESIGN SYSTEM
+   Clean white surfaces · Blue accents
+   ──────────────────────────────────────── */
+:root {
+  --bg:          #EEF4FF;
+  --surface:     #FFFFFF;
+  --surface-2:   #F4F8FF;
+  --surface-3:   #EBF3FF;
+  --border:      #E4ECFF;
+  --border-mid:  #C5D5F5;
+  --border-hi:   #90B8F8;
+
+  --primary:     #1565C0;
+  --secondary:   #2196F3;
+  --accent-glow: rgba(21,101,192,0.12);
+  --accent-glow-sm: rgba(21,101,192,0.06);
+
+  --ink:         #0D1B3E;
+  --ink-2:       #2C4A7C;
+  --ink-3:       #6B7A9A;
+  --ink-4:       #8FA5CC;
+
+  --green:       #1565C0;
+  --green-light: #EBF3FF;
+  --green-border:#90B8F8;
+
+  --red:         #D32F2F;
+  --red-light:   #FFEBEE;
+  --red-border:  #FFCDD2;
+
+  --amber:       #E65100;
+  --amber-light: #FFF3E0;
+  --amber-border:#FFCC80;
+
+  --radius:    8px;
+  --radius-lg: 14px;
+  --shadow:    0 2px 16px rgba(21,101,192,0.10), 0 0 0 1px rgba(197,213,245,0.8);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -314,7 +316,13 @@ html, body {
 }
 
 .pf-dropzone-icon {
-  font-size: 40px; margin-bottom: 12px; display: block; transition: transform 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px; 
+  margin-bottom: 12px; 
+  
+  transition: transform 0.2s;
 }
 .pf-dropzone:hover .pf-dropzone-icon { transform: scale(1.08); }
 
