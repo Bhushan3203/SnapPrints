@@ -103,7 +103,7 @@ export default function PrintForm() {
           {uploading ? (
             <><span className="pf-spinner" /> Uploading...</>
           ) : (
-            "Upload & Continue →"
+            " Upload "
           )}
         </button>
       );

@@ -41,26 +41,68 @@ export function usePrintJob({ machineId, machineStatus, onJobComplete }) {
   /* -----------------------------------------------
      FILE VALIDATION
   ----------------------------------------------- */
+  // const handleFileChange = (e) => {
+  //   setFileError("");
+  //   setJobError("");
+  //   const selected = e.target.files[0];
+  //   if (!selected) return;
+
+  //   if (selected.type !== "application/pdf") {
+  //     setFileError("Only PDF files are allowed.");
+  //     return;
+  //   }
+
+  //   const MAX = 50 * 1024 * 1024;
+  //   if (selected.size > MAX) {
+  //     setFileError("PDF size must be less than 50MB.");
+  //     return;
+  //   }
+
+  //   setFile(selected);
+  // };
+
   const handleFileChange = (e) => {
-    setFileError("");
-    setJobError("");
-    const selected = e.target.files[0];
-    if (!selected) return;
+  setFileError("");
+  setJobError("");
 
-    if (selected.type !== "application/pdf") {
-      setFileError("Only PDF files are allowed.");
-      return;
-    }
+  const selected = e.target.files[0];
+  if (!selected) return;
 
-    const MAX = 50 * 1024 * 1024;
-    if (selected.size > MAX) {
-      setFileError("PDF size must be less than 50MB.");
-      return;
-    }
+  // Allowed file extensions
+  const ALLOWED_EXTENSIONS = [
+    "pdf",
+    "doc",
+    "docx",
+    "txt",
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "bmp",
+    "webp",
+    "tif",
+    "tiff"
+  ];
 
-    setFile(selected);
-  };
+  const extension = selected.name.split(".").pop().toLowerCase();
 
+  if (!ALLOWED_EXTENSIONS.includes(extension)) {
+    setFileError(
+      "Supported files: PDF, Word, Images, TXT."
+    );
+    return;
+  }
+
+  // Maximum file size = 100 MB
+  const MAX = 100 * 1024 * 1024;
+
+  if (selected.size > MAX) {
+    setFileError("File size must be less than 100 MB.");
+    return;
+  }
+
+  setFile(selected);
+};
   /* -----------------------------------------------
      INSTANT LOCAL PRICE CALCULATION
   ----------------------------------------------- */

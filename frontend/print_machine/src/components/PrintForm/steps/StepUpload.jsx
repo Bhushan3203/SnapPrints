@@ -22,17 +22,17 @@ export default function StepUpload({
   return (
     <div className="pf-step-enter">
 
-      <p className="pf-section-title">Accepted formats:PDF,DOCX,JPG,PNG.MAX 100MB perfile</p>
+      <p className="pf-section-title">Accepted formats:PDF,DOCX,JPG,JPEG,PNG </p>
 
       <div className={`pf-dropzone ${file ? "has-file" : ""}`}>
         <input
           type="file"
-          accept="application/pdf"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tif,.tiff"
           onChange={handleFileChange}
         />
         {!file ? (
           <>
-            <div className="pf-dropzone-icon"><MdCloudUpload size={60} color="#6C63FF" /></div>
+            <div className="pf-dropzone-icon"><MdCloudUpload size={60} color="#5540f6" /></div>
             <div className="pf-dropzone-text">Drop your file here</div>
             {/* <div className="pf-dropzone-hint">PDF only · Max 50 MB</div> */}
           </>
