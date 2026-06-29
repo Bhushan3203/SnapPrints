@@ -7,7 +7,7 @@
    NAVY + CYAN DESIGN SYSTEM
    Deep navy surfaces · Cyan/blue accents
    ──────────────────────────────────────── */
-/* :root {
+:root {
   --bg:          #050816;
   --surface:     rgba(255,255,255,0.05);
   --surface-2:   rgba(0,194,255,0.08);
@@ -41,13 +41,13 @@
   --radius:    8px;
   --radius-lg: 14px;
   --shadow:    0 0 20px rgba(0,194,255,0.15), 0 0 40px rgba(0,123,255,0.08);
-} */
+}
 
 /* ─────────────────────────────────────────
    LIGHT BLUE DESIGN SYSTEM
    Clean white surfaces · Blue accents
    ──────────────────────────────────────── */
-:root {
+/* :root {
   --bg:          #EEF4FF;
   --surface:     #FFFFFF;
   --surface-2:   #F4F8FF;
@@ -81,7 +81,7 @@
   --radius:    8px;
   --radius-lg: 14px;
   --shadow:    0 2px 16px rgba(21,101,192,0.10), 0 0 0 1px rgba(197,213,245,0.8);
-}
+} */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
