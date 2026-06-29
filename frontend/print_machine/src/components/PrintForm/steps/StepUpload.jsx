@@ -1,6 +1,6 @@
 // steps/StepUpload.jsx
 import React from "react";
-import { MdAttachFile } from "react-icons/md";
+import { MdAttachFile,MdCloudUpload  } from "react-icons/md";
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -32,8 +32,8 @@ export default function StepUpload({
         />
         {!file ? (
           <>
-            <div className="pf-dropzone-icon">📄</div>
-            <div className="pf-dropzone-text">Select file</div>
+            <div className="pf-dropzone-icon"><MdCloudUpload size={60} color="#6C63FF" /></div>
+            <div className="pf-dropzone-text">Drop your file here</div>
             {/* <div className="pf-dropzone-hint">PDF only · Max 50 MB</div> */}
           </>
         ) : (
