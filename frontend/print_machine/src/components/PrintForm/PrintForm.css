@@ -734,7 +734,7 @@ html, body {
 } */
 
 /* Unified preview container for both image + PDF */
-.pf-preview-wrap {
+/* .pf-preview-wrap {
   width: 100%;
   height: 100%;
   padding: 10px;
@@ -743,6 +743,18 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+} */
+ .pf-preview-wrap {
+  width: 100%;
+  height: 100%;
+  padding: 18px 10px 10px;   /* more space at the top */
+  background: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* instead of center */
   overflow: hidden;
   border-radius: var(--radius-lg);
 }
