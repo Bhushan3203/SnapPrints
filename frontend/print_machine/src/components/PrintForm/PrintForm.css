@@ -290,10 +290,11 @@ html, body {
 
 .pf-upload-card.has-file .pf-file-info {
   border: none;
-  border-top: 1px solid rgba(0,194,255,0.20);
+  /* border-top: 1px solid rgba(0,194,255,0.20); */
   border-radius: 0;
   background: transparent;
   margin-bottom: 0;
+ 
 }
 
 /* ── FILE DROP ZONE ── */
@@ -327,7 +328,7 @@ html, body {
   width: 50%;              /* increased from 35% */
   height: 200px;            /* fixed height, reduced from 30% */
   margin: 0 auto;           /* reliable centering, replaces margin-left: 30% */
-  padding: 0;
+  padding: 12px;
   box-shadow:  none;
   display: flex;
   align-items: center;
@@ -369,8 +370,17 @@ html, body {
 }
 
 .pf-file-info .file-name {
-  font-weight: 600; color: var(--ink); flex: 1;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;
+  font-weight: 600; 
+  color: var(--ink); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+   letter-spacing: -0.2px;
 }
 
 .pf-file-info .file-size {
@@ -727,6 +737,7 @@ html, body {
 .pf-preview-wrap {
   width: 100%;
   height: 100%;
+  padding: 10px;
   background: #f0f0f0;
   display: flex;
   flex-direction: column;
@@ -737,15 +748,15 @@ html, body {
 }
 
 .pf-preview-img {
-  max-width: 95%;
-  max-height: 320px;
+  max-width: 90%;
+  max-height: 280px;
   width: auto;
   height: auto;
   object-fit: contain;
 }
 
 .pf-preview-canvas {
-  max-width: 95%;
+  max-width: 90%;
   height: auto;
   box-shadow: 0 4px 16px rgba(0,0,0,.08);
   border-radius: 8px;
