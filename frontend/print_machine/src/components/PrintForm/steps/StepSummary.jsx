@@ -25,7 +25,7 @@ export default function StepSummary({
     <div className="pf-step-enter">
 
       {file ? (
-        <div className="pf-file-info">
+        <div className="pf-file-info pf-summary-file-info">
           <span style={{ color: "var(--lime)", display: "flex" }}>
             <MdAttachFile size={16} />
           </span>
