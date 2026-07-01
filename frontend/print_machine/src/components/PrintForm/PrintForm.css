@@ -307,6 +307,9 @@ html, body {
 .pf-dropzone.has-file {
  border-style: solid; border-color: #00C2FF;
   background: rgba(0,194,255,0.08);
+  margin-left: 30%;
+  width:35%;
+  height:30%;
   padding: 0;    
   box-shadow: 0 0 20px rgba(0,194,255,0.12);
   display: flex;
