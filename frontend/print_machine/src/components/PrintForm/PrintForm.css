@@ -279,6 +279,23 @@ html, body {
   font-family: 'JetBrains Mono', monospace;
 }
 
+.pf-upload-card.has-file {
+  border: 1.5px solid #00C2FF;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: rgba(0,194,255,0.08);
+  box-shadow: 0 0 20px rgba(0,194,255,0.12);
+  margin-bottom: 14px;
+}
+
+.pf-upload-card.has-file .pf-file-info {
+  border: none;
+  border-top: 1px solid rgba(0,194,255,0.20);
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: 0;
+}
+
 /* ── FILE DROP ZONE ── */
 .pf-dropzone {
   border: 1.5px dashed rgba(0,194,255,0.25);
@@ -305,13 +322,13 @@ html, body {
 }
 
 .pf-dropzone.has-file {
-  border-style: solid; border-color: #00C2FF;
-  background: rgba(0,194,255,0.08);
-  width: 55%;              /* increased from 35% */
-  height: 220px;            /* fixed height, reduced from 30% */
+  border: none;
+  background: transparent;
+  width: 50%;              /* increased from 35% */
+  height: 200px;            /* fixed height, reduced from 30% */
   margin: 0 auto;           /* reliable centering, replaces margin-left: 30% */
   padding: 0;
-  box-shadow: 0 0 20px rgba(0,194,255,0.12);
+  box-shadow:  none;
   display: flex;
   align-items: center;
   justify-content: center;
