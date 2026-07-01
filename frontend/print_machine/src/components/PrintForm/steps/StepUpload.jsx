@@ -271,7 +271,11 @@ function ImagePreview({ file }) {
   }, [file]);
 
   if (!url) return null;
-  return <img src={url} alt="File preview" className="pf-preview-img" />;
+  return (
+    <div className="pf-image-preview-wrap">
+      <img src={url} alt="File preview" className="pf-preview-img" />
+    </div>
+  );
 }
 
 export default function StepUpload({
