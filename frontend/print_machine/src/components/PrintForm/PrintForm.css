@@ -749,7 +749,7 @@ html, body {
  .pf-preview-wrap {
   width: 100%;
   height: 100%;
-  padding: 10px 10px 10px;   /* more space at the top */
+  padding: 10px 5px 5px 10px;   /* more space at the top */
   background: #f0f0f0;
   display: flex;
   flex-direction: column;
