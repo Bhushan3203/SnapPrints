@@ -305,12 +305,12 @@ html, body {
 }
 
 .pf-dropzone.has-file {
- border-style: solid; border-color: #00C2FF;
+  border-style: solid; border-color: #00C2FF;
   background: rgba(0,194,255,0.08);
-  margin-left: 30%;
-  width:35%;
-  height:30%;
-  padding: 0;    
+  width: 55%;              /* increased from 35% */
+  height: 220px;            /* fixed height, reduced from 30% */
+  margin: 0 auto;           /* reliable centering, replaces margin-left: 30% */
+  padding: 0;
   box-shadow: 0 0 20px rgba(0,194,255,0.12);
   display: flex;
   align-items: center;
@@ -686,7 +686,7 @@ html, body {
 /* Image preview inside dropzone */
 .pf-image-preview-wrap {
   width: 100%;
-  height: 280px;
+  height: 100%;    /* fills the dropzone's fixed 220px height instead of its own 280px */
   display: flex;
   align-items: center;
   justify-content: center;
