@@ -398,11 +398,9 @@
 //     </div>
 //   );
 // }
-
-
 // steps/StepUpload.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { MdAttachFile, MdCloudUpload } from "react-icons/md";
+import { MdAttachFile, MdCloudUpload, MdInsertDriveFile } from "react-icons/md";
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -410,93 +408,214 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function getExtension(file) {
+  return file.name.split(".").pop().toLowerCase();
+}
+
+// Which files get a real rendered preview vs. just an icon fallback
 function getPreviewType(file) {
   if (!file) return null;
-  if (file.type === "application/pdf") return "pdf";
-  if (file.type.startsWith("image/")) return "image";
+  const ext = getExtension(file);
+
+  if (ext === "pdf") return "pdf";
+  if (["jpg", "jpeg", "png", "gif", "bmp", "webp", "tif", "tiff"].includes(ext)) return "image";
+  if (ext === "txt") return "text";
+  if (ext === "docx") return "docx";
+  if (ext === "doc") return "doc";     // legacy binary — no client-side parser, fallback icon
   return "other";
 }
 
-// ---- PDF preview component ----
-function PdfPreview({ file }) {
-  const canvasRef = useRef(null);
-  const [pageInfo, setPageInfo] = useState(null); // { total }
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pdfDoc, setPdfDoc] = useState(null);
-  const [loading, setLoading] = useState(true);
+const PREVIEWABLE_TYPES = ["pdf", "image", "text", "docx"];
 
-  // Load PDF.js from CDN once
-  useEffect(() => {
-    if (window.pdfjsLib) return;
+// ---- Shared CDN script loader (works for pdf.js, mammoth, anything) ----
+const scriptLoadPromises = {};
+function loadScript(src, globalCheck) {
+  if (globalCheck()) return Promise.resolve();
+  if (scriptLoadPromises[src]) return scriptLoadPromises[src];
+
+  scriptLoadPromises[src] = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    script.onload = () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    };
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
     document.head.appendChild(script);
-  }, []);
+  });
 
-  // Load the PDF file
+  return scriptLoadPromises[src];
+}
+
+function loadPdfJs() {
+  return loadScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+    () => !!window.pdfjsLib
+  ).then(() => {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    return window.pdfjsLib;
+  });
+}
+
+function loadMammoth() {
+  return loadScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
+    () => !!window.mammoth
+  ).then(() => window.mammoth);
+}
+
+// ---- Unified preview component: image, pdf, txt, docx ----
+function FilePreview({ file, type }) {
+  const canvasRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const [imageUrl, setImageUrl] = useState(null);
+
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [pageInfo, setPageInfo] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [textContent, setTextContent] = useState("");
+  const [docxHtml, setDocxHtml] = useState("");
+
+  // Reset on file/type change
   useEffect(() => {
-    if (!file) return;
+    setLoading(true);
+    setError(false);
+    setImageUrl(null);
+    setPdfDoc(null);
+    setPageInfo(null);
+    setCurrentPage(1);
+    setTextContent("");
+    setDocxHtml("");
+  }, [file, type]);
+
+  // ---- IMAGE ----
+  useEffect(() => {
+    if (type !== "image" || !file) return;
+    const objectUrl = URL.createObjectURL(file);
+    setImageUrl(objectUrl);
+    setLoading(false);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file, type]);
+
+  // ---- PDF: load document ----
+  useEffect(() => {
+    if (type !== "pdf" || !file) return;
     let cancelled = false;
 
-    const loadPdf = async () => {
-      setLoading(true);
-      setCurrentPage(1);
+    (async () => {
+      try {
+        const pdfjsLib = await loadPdfJs();
+        if (cancelled) return;
 
-      let attempts = 0;
-      while (!window.pdfjsLib && attempts < 30) {
-        await new Promise((r) => setTimeout(r, 100));
-        attempts++;
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (cancelled) return;
+
+        setPdfDoc(pdf);
+        setPageInfo({ total: pdf.numPages });
+        setLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("PDF preview failed:", err);
+          setError(true);
+          setLoading(false);
+        }
       }
-      if (!window.pdfjsLib || cancelled) return;
+    })();
 
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      if (cancelled) return;
+    return () => { cancelled = true; };
+  }, [file, type]);
 
-      setPdfDoc(pdf);
-      setPageInfo({ total: pdf.numPages });
-      setLoading(false);
-    };
-
-    loadPdf();
-    return () => {
-      cancelled = true;
-    };
-  }, [file]);
-
-  // Render current page onto canvas
+  // ---- PDF: render current page ----
   useEffect(() => {
-    if (!pdfDoc || !canvasRef.current) return;
+    if (type !== "pdf" || !pdfDoc || !canvasRef.current) return;
     let cancelled = false;
 
-    const renderPage = async () => {
-      const page = await pdfDoc.getPage(currentPage);
-      if (cancelled) return;
+    (async () => {
+      try {
+        const page = await pdfDoc.getPage(currentPage);
+        if (cancelled) return;
 
-      const viewport = page.getViewport({ scale: 1.5 });
-      const canvas = canvasRef.current;
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = canvasRef.current;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-      await page.render({
-        canvasContext: canvas.getContext("2d"),
-        viewport,
-      }).promise;
-    };
+        await page.render({
+          canvasContext: canvas.getContext("2d"),
+          viewport,
+        }).promise;
+      } catch (err) {
+        if (!cancelled) {
+          console.error("PDF page render failed:", err);
+          setError(true);
+        }
+      }
+    })();
 
-    renderPage();
-    return () => {
-      cancelled = true;
-    };
-  }, [pdfDoc, currentPage]);
+    return () => { cancelled = true; };
+  }, [type, pdfDoc, currentPage]);
+
+  // ---- TXT ----
+  useEffect(() => {
+    if (type !== "text" || !file) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const raw = await file.text();
+        if (cancelled) return;
+        const truncated = raw.length > 4000 ? raw.slice(0, 4000) + "\n\n… (truncated)" : raw;
+        setTextContent(truncated);
+        setLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Text preview failed:", err);
+          setError(true);
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [file, type]);
+
+  // ---- DOCX ----
+  useEffect(() => {
+    if (type !== "docx" || !file) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const mammoth = await loadMammoth();
+        if (cancelled) return;
+
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        if (cancelled) return;
+
+        setDocxHtml(result.value);
+        setLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("DOCX preview failed:", err);
+          setError(true);
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [file, type]);
+
+  if (error) {
+    return <MdInsertDriveFile size={60} color="#00C2FF" />;
+  }
 
   if (loading) {
     return (
-      <div className="pf-pdf-loading">
+      <div className="pf-preview-loading">
         <span className="pf-spinner dark" />
         <span>Loading preview...</span>
       </div>
@@ -504,10 +623,27 @@ function PdfPreview({ file }) {
   }
 
   return (
-    <div className="pf-pdf-preview-wrap">
-      <canvas ref={canvasRef} className="pf-pdf-canvas" />
+    <div className="pf-preview-wrap">
+      {type === "image" && (
+        <img src={imageUrl} alt="File preview" className="pf-preview-img" />
+      )}
 
-      {pageInfo?.total > 1 && (
+      {type === "pdf" && (
+        <canvas ref={canvasRef} className="pf-preview-canvas" />
+      )}
+
+      {type === "text" && (
+        <pre className="pf-preview-text">{textContent}</pre>
+      )}
+
+      {type === "docx" && (
+        <div
+          className="pf-preview-docx"
+          dangerouslySetInnerHTML={{ __html: docxHtml }}
+        />
+      )}
+
+      {type === "pdf" && pageInfo?.total > 1 && (
         <div className="pf-pdf-nav">
           <button
             className="pf-pdf-nav-btn"
@@ -532,25 +668,6 @@ function PdfPreview({ file }) {
   );
 }
 
-// ---- Image preview component ----
-function ImagePreview({ file }) {
-  const [url, setUrl] = useState(null);
-
-  useEffect(() => {
-    if (!file) return;
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-
-  if (!url) return null;
-  return (
-    <div className="pf-image-preview-wrap">
-      <img src={url} alt="File preview" className="pf-preview-img" />
-    </div>
-  );
-}
-
 export default function StepUpload({
   file,
   handleFileChange,
@@ -563,13 +680,13 @@ export default function StepUpload({
   jobError,
 }) {
   const previewType = getPreviewType(file);
+  const hasPreview = PREVIEWABLE_TYPES.includes(previewType);
 
   return (
     <div className="pf-step-enter">
 
       <p className="pf-section-title">Accepted formats:PDF,DOCX,JPG,JPEG,PNG </p>
 
-      {/* Single unified card: preview + filename row live inside this one wrapper */}
       <div className={`pf-upload-card ${file ? "has-file" : ""}`}>
         <div className={`pf-dropzone ${file ? "has-file" : ""}`}>
           <input
@@ -582,13 +699,11 @@ export default function StepUpload({
               <div className="pf-dropzone-icon"><MdCloudUpload size={60} color="#2a7cc0" /></div>
               <div className="pf-dropzone-text">Drop your file here</div>
             </>
-          ) : previewType === "image" ? (
-            <ImagePreview file={file} />
-          ) : previewType === "pdf" ? (
-            <PdfPreview file={file} />
+          ) : hasPreview ? (
+            <FilePreview file={file} type={previewType} />
           ) : (
             <>
-              <div className="pf-dropzone-icon">✅</div>
+              <div className="pf-dropzone-icon"><MdInsertDriveFile size={60} color="#00C2FF" /></div>
               <div className="pf-dropzone-text">File selected</div>
               <div className="pf-dropzone-hint">We delete your files once printed</div>
             </>
