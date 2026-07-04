@@ -54,7 +54,7 @@ export default function PrintForm() {
         <div className="pf-header">
           <div className="pf-header-icon">🖨</div>
           <div className="pf-header-text">
-            <h1>Snap<span className="pf-logo-accent">Print</span></h1>
+            <h1>Snap<span className="pf-logo-accent">Prints</span></h1>
             <p>Print Anytime Print Anywhere</p>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function PrintForm() {
       <div className="pf-header">
         <div className="pf-header-icon">🖨</div>
         <div className="pf-header-text">
-          <h1>Snap<span className="pf-logo-accent">Print</span></h1>
+          <h1>Snap<span className="pf-logo-accent">Prints</span></h1>
             <p>Print Anytime Anywhere</p>
         </div>
       </div>
