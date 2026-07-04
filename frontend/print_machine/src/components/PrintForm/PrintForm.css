@@ -22,7 +22,7 @@
   --accent-glow: rgba(11,108,255,0.12);
   --accent-glow-sm: rgba(11,108,255,0.06);
 
-  --ink:         #0B1B33;
+  --ink:         #1A1A1A;
   --ink-2:       #2E415F;
   --ink-3:       #7C8CA6;
   --ink-4:       rgba(46,65,95,0.30);
@@ -99,11 +99,13 @@ html, body {
 
 .pf-header-text h1 {
   font-size: 17px; font-weight: 800;
-  color: var(--ink); letter-spacing: -0.5px;
+  /* color: var(--ink); letter-spacing: -0.5px; */
+  color: #162B4D; 
+  letter-spacing: -0.5px;
 }
 
 .pf-logo-accent {
-  color: var(--primary);
+  color: #136BFF;
 }
 
 .pf-header-text p {
