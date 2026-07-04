@@ -102,6 +102,10 @@ html, body {
   color: var(--ink); letter-spacing: -0.5px;
 }
 
+.pf-logo-accent {
+  color: var(--primary);
+}
+
 .pf-header-text p {
   font-size: 10px; color: var(--ink-3);
   font-family: 'JetBrains Mono', monospace;

@@ -54,7 +54,7 @@ export default function PrintForm() {
         <div className="pf-header">
           <div className="pf-header-icon">🖨</div>
           <div className="pf-header-text">
-            <h1>SnapPrints</h1>
+            <h1>Snap<span className="pf-logo-accent">Print</span></h1>
             <p>Print Anytime Print Anywhere</p>
           </div>
         </div>
