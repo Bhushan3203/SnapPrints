@@ -85,28 +85,25 @@ html, body {
   display: flex;
   align-items: center;
   gap: 11px;
-  background: #0B1220;
-  border-radius: 14px;
-  padding: 10px 14px;
-  box-shadow: 0 6px 18px rgba(11,18,32,0.25);
 }
 
 .pf-header-icon {
   width: 36px; height: 36px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.14);
+  background: #FFFFFF;
+  border: 1px solid var(--border-mid);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(16,45,90,0.08);
 }
 
 .pf-header-text h1 {
   font-size: 17px; font-weight: 800;
-  color: #FFFFFF; letter-spacing: -0.5px;
+  color: var(--ink); letter-spacing: -0.5px;
 }
 
 .pf-header-text p {
-  font-size: 10px; color: rgba(255,255,255,0.55);
+  font-size: 10px; color: var(--ink-3);
   font-family: 'JetBrains Mono', monospace;
   letter-spacing: 0.5px; text-transform: uppercase;
 }
@@ -725,7 +722,7 @@ html, body {
 
 .pf-preview-img {
   max-width: 90%;
-  max-height: 350px;
+  max-height: 280px;
   width: auto;
   height: auto;
   object-fit: contain;
