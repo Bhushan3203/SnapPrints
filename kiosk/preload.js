@@ -1,9 +1,4 @@
-// const { contextBridge } = require("electron");
-// const kiosk = require("./kioskCore");
 
-// contextBridge.exposeInMainWorld("kioskAPI", {
-//   sendOtp: kiosk.handleInput
-// });
 
 // preload.js
 const { contextBridge } = require("electron");
