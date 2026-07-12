@@ -80,14 +80,54 @@ app.use("/api/admin", adminRoutes);
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
+const ALLOWED_MIMETYPES = new Set([
+  "application/pdf",
+  "application/msword",                                                        // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",   // .docx
+  "text/plain",                                                                // .txt
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/bmp",
+  "image/webp",
+  "image/tiff",
+]);
+const EXT_TO_MIME_FALLBACK = {
+  ".pdf": "application/pdf",
+  ".doc": "application/msword",
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".txt": "text/plain",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".bmp": "image/bmp",
+  ".webp": "image/webp",
+  ".tif": "image/tiff",
+  ".tiff": "image/tiff",
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
-  filename:    (req, file, cb) => cb(null, Date.now() + "-" + Math.round(Math.random() * 1e9) + ".pdf"),
+  filename: (req, file, cb) => {
+    // Preserve the real extension instead of hardcoding ".pdf" —
+    // otherwise every non-PDF file gets saved with a wrong/misleading extension.
+    const ext = path.extname(file.originalname).toLowerCase() || "";
+    cb(null, Date.now() + "-" + Math.round(Math.random() * 1e9) + ext);
+  },
 });
 const upload = multer({
   storage,
-  fileFilter: (_, file, cb) =>
-    file.mimetype === "application/pdf" ? cb(null, true) : cb(new Error("Only PDF allowed")),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB cap — tune as needed
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mimetype = ALLOWED_MIMETYPES.has(file.mimetype)
+      ? file.mimetype
+      : EXT_TO_MIME_FALLBACK[ext];
+ 
+    if (mimetype) return cb(null, true);
+    return cb(new Error("Unsupported file type. Allowed: PDF, DOC, DOCX, TXT, JPG, PNG, GIF, BMP, WEBP, TIFF"));
+  },
 });
 
 /* ── HELPERS ── */
@@ -275,7 +315,8 @@ app.post("/api/kiosk/heartbeat", verifyMachine, async (req, res) => {
 app.post("/api/upload-job", upload.single("pdf"), async (req, res) => {
   try {
     const { machineId, color, copies, paperSize, printSide } = req.body;
-    const pdf   = await pdfParse(fs.readFileSync(req.file.path));
+        const ext = path.extname(req.file.originalname).toLowerCase();
+    const totalPages = await getPageCount(req.file.path, ext);
     const jobId = "JOB_" + Date.now();
     await db.query(
       `INSERT INTO print_jobs (job_id, machine_id, file_name, file_path, color, copies, paper_size, print_side, total_pages, status)
