@@ -52,7 +52,7 @@ export default function PrintForm() {
     return (
       <div className="pf-page">
         <div className="pf-header">
-          <div className="pf-header-icon">🖨</div>
+          <div className="pf-header-icon"><img src="/logo-icon.png" alt="SnapPrint" className="pf-logo-img" /></div>
           <div className="pf-header-text">
             <h1>Snap<span className="pf-logo-accent">Prints</span></h1>
             <p>Print Anytime Print Anywhere</p>

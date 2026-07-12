@@ -86,15 +86,23 @@ html, body {
 }
 
 .pf-header-icon {
-  width: 36px; height: 36px;
-  background: #FFFFFF;
-  border: 1px solid var(--border-mid);
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(16,45,90,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;           /* keep light so the dark-navy logo has contrast */
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
+.pf-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;               /* small breathing room so it doesn't touch edges */
+}
 .pf-header-text h1 {
   font-size: 17px; font-weight: 800;
   /* color: var(--ink); letter-spacing: -0.5px; */
